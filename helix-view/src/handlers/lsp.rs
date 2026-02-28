@@ -31,6 +31,11 @@ pub enum SignatureHelpEvent {
     RequestComplete { open: bool },
 }
 
+pub enum HoverEvent {
+    Trigger,
+    Cancel,
+}
+
 pub struct PullDiagnosticsEvent {
     pub document_id: DocumentId,
 }

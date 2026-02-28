@@ -558,6 +558,8 @@ pub struct LspConfig {
     pub snippets: bool,
     /// Whether to include declaration in the goto reference query
     pub goto_reference_include_declaration: bool,
+    /// Enable automatic pop up of hover documentation on cursor movement
+    pub auto_hover: bool,
 }
 
 impl Default for LspConfig {
@@ -573,6 +575,7 @@ impl Default for LspConfig {
             snippets: true,
             goto_reference_include_declaration: true,
             display_color_swatches: true,
+            auto_hover: false,
         }
     }
 }
