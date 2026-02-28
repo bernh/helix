@@ -558,7 +558,9 @@ pub struct LspConfig {
     pub snippets: bool,
     /// Whether to include declaration in the goto reference query
     pub goto_reference_include_declaration: bool,
-    /// Enable automatic pop up of hover documentation on cursor movement
+    /// Enable automatic hover for transmitting cursor location.
+    /// This has been implemented for side effects like refreshing a Lean infoview.
+    /// Actual hover UI is not shown.
     pub auto_hover: bool,
 }
 

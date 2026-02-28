@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use futures_util::stream::FuturesOrdered;
 use helix_core::syntax::config::LanguageServerFeature;
-use helix_event::{register_hook, send_blocking, TaskController, TaskHandle};
+use helix_event::{cancelable_future, register_hook, send_blocking, TaskController, TaskHandle};
 use helix_view::document::Mode;
 use helix_view::events::SelectionDidChange;
 use helix_view::handlers::lsp::HoverEvent;
@@ -62,6 +62,7 @@ fn request_hover(editor: &mut Editor, cancel: TaskHandle) {
 
     let (view, doc) = current!(editor);
 
+    // XXX creating a new HashSet of language servers every time looks excessive!
     let mut seen_language_servers = HashSet::new();
     let futures: FuturesOrdered<_> = doc
         .language_servers_with_feature(LanguageServerFeature::Hover)
@@ -84,18 +85,12 @@ fn request_hover(editor: &mut Editor, cancel: TaskHandle) {
         let mut futures = futures;
 
         loop {
-            tokio::select! {
-                biased;
-                _ = cancel.canceled() => {
-                    return;
-                }
-                response = futures.next() => {
-                    match response {
-                        Some(Err(err)) => log::error!("Error requesting hover: {err}"),
-                        Some(Ok(_)) => (),
-                        None => break,
-                    }
-                }
+            match cancelable_future(futures.next(), &cancel).await {
+                Some(Some(Ok(_))) => (),
+                Some(Some(Err(err))) => log::error!("Error requesting hover: {err}"),
+                Some(None) => break,
+                // Request was cancelled
+                None => return,
             }
         }
     });
